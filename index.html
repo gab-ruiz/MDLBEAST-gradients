@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Gradient Pattern Generator v6</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0d10; --panel:#111519; --panel-border:#22282e;
+    --text:#e8ecef; --text-dim:#7c8790; --field-bg:#181d22;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;}
+  .app{display:flex;min-height:100vh;}
+  .canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:32px;min-width:0;}
+  #svgHost{width:100%;max-width:640px;aspect-ratio:4/5;background:#000;border-radius:2px;overflow:hidden;box-shadow:0 0 0 1px var(--panel-border);}
+  #svgHost svg{width:100%;height:100%;display:block;}
+
+  .sidebar{width:360px;flex-shrink:0;background:var(--panel);border-left:1px solid var(--panel-border);padding:26px 22px;overflow-y:auto;max-height:100vh;}
+  .top-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
+  h1{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;margin:0 0 4px;letter-spacing:-0.01em;}
+  .sub{font-size:11px;color:var(--text-dim);margin:0 0 22px;letter-spacing:0.02em;}
+  .reset-link{background:none;border:1px solid var(--panel-border);color:var(--text-dim);font-family:inherit;font-size:10px;padding:5px 9px;border-radius:2px;cursor:pointer;flex-shrink:0;}
+  .reset-link:hover{color:var(--text);border-color:var(--text-dim);}
+
+  .section{margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid var(--panel-border);}
+  .section:last-child{border-bottom:none;}
+  .sec-title{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;margin-bottom:2px;display:flex;align-items:center;justify-content:space-between;cursor:default;}
+  .sec-num{color:var(--text-dim);font-weight:400;}
+  .sec-title.collapsible{cursor:pointer;user-select:none;}
+  .chevron{font-size:11px;color:var(--text-dim);transition:transform .15s;}
+  .chevron.closed{transform:rotate(-90deg);}
+  .eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);margin:14px 0 8px;}
+  .eyebrow:first-of-type{margin-top:12px;}
+
+  .control{margin-bottom:12px;}
+  .control label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:5px;}
+  .input-row{display:flex;align-items:center;gap:8px;}
+  input[type=range]{flex:1;accent-color:var(--text);height:2px;}
+  input[type=number]{width:54px;background:var(--field-bg);border:1px solid var(--panel-border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 5px;border-radius:2px;}
+
+  .stops-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+  .stop-row{display:flex;align-items:center;gap:8px;}
+  .stop-row input[type=color]{width:34px;height:26px;border:1px solid var(--panel-border);background:none;padding:0;cursor:pointer;border-radius:2px;}
+  .stop-row span{font-size:11px;color:var(--text-dim);flex:1;}
+  .stop-row button{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;padding:2px 6px;}
+  .stop-row button:hover{color:#e05252;}
+  .add-stop{width:100%;padding:7px 0;background:none;border:1px dashed var(--panel-border);color:var(--text-dim);font-family:inherit;font-size:11px;cursor:pointer;border-radius:2px;}
+  .add-stop:hover{color:var(--text);border-color:var(--text-dim);}
+
+  .toggle-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+  .toggle{padding:7px 11px;background:var(--field-bg);border:1px solid var(--panel-border);color:var(--text-dim);font-family:inherit;font-size:10.5px;letter-spacing:0.02em;cursor:pointer;border-radius:2px;}
+  .toggle.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+  .toggle-group{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+  .toggle-group.three{grid-template-columns:1fr 1fr 1fr;}
+
+  .block-card{background:var(--field-bg);border:1px solid var(--panel-border);border-radius:3px;padding:10px;margin-bottom:8px;}
+  .block-card .bc-head{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;color:var(--text-dim);margin-bottom:8px;}
+  .mini-toggle-row{display:flex;gap:4px;}
+  .mini-toggle{padding:4px 8px;background:transparent;border:1px solid var(--panel-border);color:var(--text-dim);font-family:inherit;font-size:9.5px;cursor:pointer;border-radius:2px;}
+  .mini-toggle.active{background:var(--text);color:var(--bg);}
+  .col-slider-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+  .col-slider-row span{font-size:9px;color:var(--text-dim);width:16px;flex-shrink:0;}
+  .col-slider-row input[type=range]{flex:1;height:2px;}
+  .col-slider-row input[type=number]{width:48px;}
+
+  .btn{width:100%;padding:10px 0;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:500;border:1px solid var(--panel-border);background:var(--field-bg);color:var(--text);cursor:pointer;border-radius:2px;margin-bottom:8px;}
+  .btn:hover{border-color:var(--text-dim);}
+  .btn.primary{background:var(--text);color:var(--bg);border-color:var(--text);}
+  .btn.primary:hover{opacity:0.85;}
+  .btn-row{display:flex;gap:8px;}
+  .btn-row .btn{margin-bottom:0;}
+  .small-btn{padding:7px 0;font-size:10.5px;margin-top:4px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="canvas-wrap"><div id="svgHost"></div></div>
+
+  <div class="sidebar">
+    <div class="top-row">
+      <div>
+        <h1>Gradient Patterns</h1>
+        <p class="sub">v6 — noise overlay</p>
+      </div>
+      <button class="reset-link" id="resetAll">Reset all</button>
+    </div>
+
+    <!-- SECTION 1: SETUP -->
+    <div class="section">
+      <div class="sec-title"><span><span class="sec-num">1.</span> Setup</span></div>
+
+      <div class="eyebrow">Color sequence</div>
+      <div class="stops-list" id="stopsList"></div>
+      <button class="add-stop" id="addStop">+ add color stop</button>
+
+      <div class="eyebrow">Bar orientation</div>
+      <div class="toggle-group">
+        <button class="toggle active" data-orient="vertical">Vertical (columns)</button>
+        <button class="toggle" data-orient="horizontal">Horizontal (rows)</button>
+      </div>
+
+      <div class="eyebrow">Structure</div>
+      <div class="control">
+        <label id="barsLabel">Columns</label>
+        <div class="input-row">
+          <input type="range" id="cols" min="2" max="20" value="7">
+          <input type="number" id="colsNum" min="2" max="20" value="7">
+        </div>
+      </div>
+
+      <div class="eyebrow">Gradient repeat</div>
+      <div class="control">
+        <label>Base length</label>
+        <div class="input-row">
+          <input type="range" id="cycle" min="100" max="1000" value="400">
+          <input type="number" id="cycleNum" min="100" max="1000" value="400">
+        </div>
+      </div>
+      <div class="control">
+        <label>Repeat count (1 = no repeat)</label>
+        <div class="input-row">
+          <input type="range" id="repeatCount" min="1" max="10" value="1">
+          <input type="number" id="repeatCountNum" min="1" max="10" value="1">
+        </div>
+      </div>
+      <div class="control">
+        <label>Repeat size falloff (100 = same size each time)</label>
+        <div class="input-row">
+          <input type="range" id="decay" min="30" max="100" value="70">
+          <input type="number" id="decayNum" min="30" max="100" value="70">
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: TRANSFORM -->
+    <div class="section">
+      <div class="sec-title"><span><span class="sec-num">2.</span> Transform</span></div>
+
+      <div class="eyebrow">Move bars up / down</div>
+      <div class="toggle-group three" id="anchorGroup">
+        <button class="toggle active" data-anchor="left">From left</button>
+        <button class="toggle" data-anchor="right">From right</button>
+        <button class="toggle" data-anchor="center">From center</button>
+      </div>
+      <div class="toggle-group" style="margin-bottom:10px;">
+        <button class="toggle active" data-anchor="wave" style="grid-column:1/-1;">Wave (multiple peaks)</button>
+      </div>
+      <div class="toggle-group two" id="directionGroup">
+        <button class="toggle active" data-dir="up">Up</button>
+        <button class="toggle" data-dir="down">Down</button>
+      </div>
+      <div class="control" id="freqControlWrap" style="display:none;">
+        <label>Frequency (peaks) <span style="color:var(--text-dim);">— 1 = two peaks / one valley, like your reference</span></label>
+        <div class="input-row">
+          <input type="range" id="rampFreq" min="0.5" max="5" step="0.5" value="1">
+          <input type="number" id="rampFreqNum" min="0.5" max="5" step="0.5" value="1">
+        </div>
+      </div>
+      <div class="control">
+        <label>Amount</label>
+        <div class="input-row">
+          <input type="range" id="rampAmt" min="0" max="100" value="0">
+          <input type="number" id="rampAmtNum" min="0" max="100" value="0">
+        </div>
+      </div>
+
+      <div class="eyebrow">Blocks</div>
+      <div class="control">
+        <label>Horizontal blocks</label>
+        <div class="input-row">
+          <input type="range" id="blocks" min="1" max="4" value="1">
+          <input type="number" id="blocksNum" min="1" max="4" value="1">
+        </div>
+      </div>
+      <div id="blockOrientation"></div>
+
+      <div class="eyebrow">Rotate</div>
+      <div class="control">
+        <label>Angle (°)</label>
+        <div class="input-row">
+          <input type="range" id="rotate" min="-45" max="45" value="0">
+          <input type="number" id="rotateNum" min="-45" max="45" value="0">
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: FINE STAGGER (collapsible) -->
+    <div class="section">
+      <div class="sec-title collapsible" id="staggerHeader">
+        <span><span class="sec-num">3.</span> Fine stagger</span>
+        <span class="chevron closed" id="staggerChevron">▾</span>
+      </div>
+      <div id="staggerBody" style="display:none;">
+        <p style="font-size:10.5px;color:var(--text-dim);margin:10px 0 8px;">Starts at 0 for every bar. Nudge individually or randomize.</p>
+        <button class="btn small-btn" id="randomizeOffsets">Randomize stagger</button>
+        <button class="btn small-btn" id="resetOffsets">Reset all to 0</button>
+        <div id="staggerPanel" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: FLIP & REFLECT -->
+    <div class="section">
+      <div class="sec-title"><span><span class="sec-num">4.</span> Flip &amp; reflect</span></div>
+      <div class="eyebrow">Flip</div>
+      <div class="toggle-group">
+        <button class="toggle" id="flipH">Flip horizontal</button>
+        <button class="toggle" id="flipV">Flip vertical</button>
+      </div>
+
+      <div class="eyebrow">Reflect</div>
+      <div class="toggle-group">
+        <button class="toggle" id="reflectOn">Enable</button>
+        <button class="toggle" id="reflectAxis" data-axis="horizontal">Split: horizontal</button>
+      </div>
+      <div class="control">
+        <label>Line position</label>
+        <div class="input-row">
+          <input type="range" id="reflectPos" min="0" max="100" value="50">
+          <input type="number" id="reflectPosNum" min="0" max="100" value="50">
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 5: NOISE -->
+    <div class="section">
+      <div class="sec-title"><span><span class="sec-num">5.</span> Noise</span></div>
+
+      <div class="toggle-group">
+        <button class="toggle" id="noiseOn">Enable</button>
+        <button class="btn small-btn" id="rerollNoise" style="margin:0;">Reroll noise</button>
+      </div>
+
+      <div class="control">
+        <label>Grain size <span style="color:var(--text-dim);">— low = fine grain, high = big blotchy clumps</span></label>
+        <div class="input-row">
+          <input type="range" id="noiseSize" min="1" max="100" value="30">
+          <input type="number" id="noiseSizeNum" min="1" max="100" value="30">
+        </div>
+      </div>
+      <div class="control">
+        <label>Quality <span style="color:var(--text-dim);">— detail/complexity of the texture</span></label>
+        <div class="input-row">
+          <input type="range" id="noiseOctaves" min="1" max="8" value="3">
+          <input type="number" id="noiseOctavesNum" min="1" max="8" value="3">
+        </div>
+      </div>
+      <div class="control">
+        <label>Intensity</label>
+        <div class="input-row">
+          <input type="range" id="noiseOpacity" min="0" max="100" value="35">
+          <input type="number" id="noiseOpacityNum" min="0" max="100" value="35">
+        </div>
+      </div>
+      <div class="eyebrow">Blend</div>
+      <div class="toggle-group three" id="noiseBlendGroup">
+        <button class="toggle active" data-blend="overlay">Overlay</button>
+        <button class="toggle" data-blend="multiply">Multiply</button>
+        <button class="toggle" data-blend="screen">Screen</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <button class="btn primary" id="randomizeAll">Randomize everything</button>
+      <div class="btn-row">
+        <button class="btn" id="exportSvg">Export SVG</button>
+        <button class="btn" id="exportPng">Export PNG</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const W = 800, H = 1000;
+
+const DEFAULTS = {
+  stops: ["#e91e8c", "#3a0a3a", "#111111", "#f5a623", "#fff6e0"],
+  numBars: 7, baseLength: 400, repeatCount: 1, decayPct: 70,
+  defaultOrientation: 'vertical', numBlocks: 1,
+  flipH: false, flipV: false, rotateAngle: 0,
+  rampAnchor: 'left', rampDir: 'up', rampAmt: 0, rampFreq: 1,
+  reflectOn: false, reflectAxis: 'horizontal', reflectPos: 50,
+  noiseOn: false, noiseSize: 30, noiseOctaves: 3, noiseOpacity: 35, noiseBlend: 'overlay', noiseSeed: 1
+};
+
+let stops, numBars, baseLength, repeatCount, decayPct, defaultOrientation, numBlocks;
+let blocks = [];
+let flipH, flipV, rotateAngle;
+let rampAnchor, rampDir, rampAmt, rampFreq;
+let reflectOn, reflectAxis, reflectPos;
+let noiseOn, noiseSize, noiseOctaves, noiseOpacity, noiseBlend, noiseSeed;
+
+function rand(min,max){ return Math.random()*(max-min)+min; }
+function totalLength(){
+  let len = baseLength, total = 0, decay = decayPct/100;
+  for(let i=0;i<repeatCount;i++){ total += len; len *= decay; }
+  return total;
+}
+function initBlocks(){
+  blocks = [];
+  for(let b=0;b<numBlocks;b++){
+    blocks.push({ orientation: defaultOrientation, offsets: Array.from({length:numBars}, ()=>0) });
+  }
+}
+
+function applyDefaults(){
+  stops = [...DEFAULTS.stops];
+  numBars = DEFAULTS.numBars; baseLength = DEFAULTS.baseLength;
+  repeatCount = DEFAULTS.repeatCount; decayPct = DEFAULTS.decayPct;
+  defaultOrientation = DEFAULTS.defaultOrientation; numBlocks = DEFAULTS.numBlocks;
+  flipH = DEFAULTS.flipH; flipV = DEFAULTS.flipV; rotateAngle = DEFAULTS.rotateAngle;
+  rampAnchor = DEFAULTS.rampAnchor; rampDir = DEFAULTS.rampDir; rampAmt = DEFAULTS.rampAmt; rampFreq = DEFAULTS.rampFreq;
+  reflectOn = DEFAULTS.reflectOn; reflectAxis = DEFAULTS.reflectAxis; reflectPos = DEFAULTS.reflectPos;
+  noiseOn = DEFAULTS.noiseOn; noiseSize = DEFAULTS.noiseSize; noiseOctaves = DEFAULTS.noiseOctaves;
+  noiseOpacity = DEFAULTS.noiseOpacity; noiseBlend = DEFAULTS.noiseBlend; noiseSeed = DEFAULTS.noiseSeed;
+  initBlocks();
+}
+applyDefaults();
+
+// ---------- generic slider <-> number wiring ----------
+function wireControl(sliderId, numberId, onChange){
+  const slider = document.getElementById(sliderId);
+  const number = document.getElementById(numberId);
+  slider.addEventListener('input', ()=>{ number.value = slider.value; onChange(+slider.value); });
+  number.addEventListener('input', ()=>{
+    if(number.value === '') return;
+    let v = Math.min(+slider.max, Math.max(+slider.min, +number.value));
+    slider.value = v;
+    onChange(v);
+  });
+}
+function setControl(sliderId, numberId, value){
+  document.getElementById(sliderId).value = value;
+  document.getElementById(numberId).value = value;
+}
+
+// ---------- color stops UI ----------
+function renderStops(){
+  const list = document.getElementById('stopsList');
+  list.innerHTML = '';
+  stops.forEach((c,i)=>{
+    const row = document.createElement('div');
+    row.className = 'stop-row';
+    row.innerHTML = `<input type="color" value="${c}" data-i="${i}"><span>stop ${i+1}</span><button data-i="${i}" ${stops.length<=2?'style="visibility:hidden"':''}>×</button>`;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('input[type=color]').forEach(inp=>{
+    inp.addEventListener('input', e=>{ stops[+e.target.dataset.i]=e.target.value; render(); });
+  });
+  list.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      if(stops.length<=2) return;
+      stops.splice(+e.target.dataset.i,1);
+      renderStops(); render();
+    });
+  });
+}
+document.getElementById('addStop').addEventListener('click', ()=>{
+  stops.push('#ffffff'); renderStops(); render();
+});
+
+// ---------- block orientation UI ----------
+function renderBlockOrientation(){
+  const host = document.getElementById('blockOrientation');
+  host.innerHTML = '';
+  if(numBlocks <= 1) return;
+  blocks.forEach((blk, bi)=>{
+    const card = document.createElement('div');
+    card.className = 'block-card';
+    card.innerHTML = `
+      <div class="bc-head">
+        <span>Block ${bi+1}</span>
+        <div class="mini-toggle-row">
+          <button class="mini-toggle ${blk.orientation==='vertical'?'active':''}" data-b="${bi}" data-o="vertical">Vertical</button>
+          <button class="mini-toggle ${blk.orientation==='horizontal'?'active':''}" data-b="${bi}" data-o="horizontal">Horizontal</button>
+        </div>
+      </div>`;
+    host.appendChild(card);
+  });
+  host.querySelectorAll('.mini-toggle').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const bi = +btn.dataset.b;
+      blocks[bi].orientation = btn.dataset.o;
+      renderBlockOrientation();
+      render();
+    });
+  });
+}
+
+// ---------- stagger sliders UI ----------
+function renderStagger(){
+  const host = document.getElementById('staggerPanel');
+  host.innerHTML = '';
+  const tl = totalLength();
+  blocks.forEach((blk, bi)=>{
+    if(numBlocks > 1){
+      const eyebrow = document.createElement('div');
+      eyebrow.className = 'eyebrow';
+      eyebrow.textContent = `Block ${bi+1}`;
+      host.appendChild(eyebrow);
+    }
+    blk.offsets.forEach((val, ci)=>{
+      const row = document.createElement('div');
+      row.className = 'col-slider-row';
+      row.innerHTML = `<span>${ci+1}</span><input type="range" min="0" max="${Math.round(tl)}" value="${val}" data-b="${bi}" data-c="${ci}"><input type="number" min="0" max="${Math.round(tl)}" value="${Math.round(val)}" data-b="${bi}" data-c="${ci}">`;
+      host.appendChild(row);
+    });
+  });
+  host.querySelectorAll('input[type=range]').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const v = +e.target.value;
+      blocks[+e.target.dataset.b].offsets[+e.target.dataset.c] = v;
+      e.target.nextElementSibling.value = v;
+      render();
+    });
+  });
+  host.querySelectorAll('input[type=number]').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      if(e.target.value === '') return;
+      const v = +e.target.value;
+      blocks[+e.target.dataset.b].offsets[+e.target.dataset.c] = v;
+      e.target.previousElementSibling.value = v;
+      render();
+    });
+  });
+}
+
+// ---------- collapsible section 3 ----------
+document.getElementById('staggerHeader').addEventListener('click', ()=>{
+  const body = document.getElementById('staggerBody');
+  const chevron = document.getElementById('staggerChevron');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  chevron.classList.toggle('closed', isOpen);
+});
+
+// ---------- directional / wave ramp (additive, section 2) ----------
+function rampDelta(idx, n){
+  if(rampAmt === 0 || n<=1) return 0;
+  const t = idx/(n-1);
+  let f;
+  if(rampAnchor==='left')        f = (1-Math.cos(t*Math.PI))/2;
+  else if(rampAnchor==='right')  f = (1-Math.cos((1-t)*Math.PI))/2;
+  else if(rampAnchor==='center') f = (1+Math.cos((t-0.5)*2*Math.PI))/2;
+  else /* wave */                f = (Math.cos(2*Math.PI*rampFreq*t)+1)/2;
+  const magnitude = f * (rampAmt/100) * totalLength();
+  return rampDir==='up' ? -magnitude : magnitude;
+}
+
+function el(tag, attrs){
+  const e = document.createElementNS(NS, tag);
+  for(const k in attrs){ if(attrs[k]!==null && attrs[k]!==undefined) e.setAttribute(k, attrs[k]); }
+  return e;
+}
+
+// ---------- gradient with repeat + decay ----------
+function getOrMakeBaseGrad(defs, orientation){
+  const id = 'mainGrad_'+orientation;
+  if(defs.querySelector('#'+id)) return id;
+  const tl = totalLength();
+  const attrs = orientation==='v'
+    ? {id, gradientUnits:'userSpaceOnUse', x1:0,y1:0,x2:0,y2:tl, spreadMethod:'pad'}
+    : {id, gradientUnits:'userSpaceOnUse', x1:0,y1:0,x2:tl,y2:0, spreadMethod:'pad'};
+  const grad = el('linearGradient', attrs);
+  let cursor = 0, segLen = baseLength;
+  const decay = decayPct/100;
+  for(let r=0;r<repeatCount;r++){
+    stops.forEach((c,i)=>{
+      const localFrac = i/(stops.length-1);
+      const pos = ((cursor + localFrac*segLen)/tl*100);
+      grad.appendChild(el('stop', {offset:pos+'%', 'stop-color':c}));
+    });
+    cursor += segLen;
+    segLen *= decay;
+  }
+  defs.appendChild(grad);
+  return id;
+}
+
+// ---------- core build ----------
+function buildContent(defs){
+  const g = el('g', {id:'content'});
+  const blockH = H/numBlocks;
+
+  blocks.forEach((blk, bi)=>{
+    const y0 = bi*blockH;
+    const n = blk.offsets.length;
+    const order = [...Array(n).keys()];
+    const useOrder = flipH ? [...order].reverse() : order;
+    const tl = totalLength();
+
+    if(blk.orientation === 'vertical'){
+      const colW = W/n;
+      const gradBase = getOrMakeBaseGrad(defs, 'v');
+      order.forEach((ci)=>{
+        const x = ci*colW;
+        let offset = blk.offsets[useOrder[ci]] + rampDelta(ci, n);
+        if(flipV) offset = tl - offset;
+        const gid = 'g_'+bi+'_'+ci+'_'+Math.round(offset);
+        const grad = el('linearGradient', {id:gid, href:'#'+gradBase, 'gradientTransform':`translate(0 ${offset})`});
+        defs.appendChild(grad);
+        const cx = x+colW/2, cy = y0+blockH/2;
+        const rect = el('rect', {x, y:y0, width:colW+0.6, height:blockH, fill:`url(#${gid})`,
+          transform: rotateAngle ? `rotate(${rotateAngle} ${cx} ${cy})` : null});
+        g.appendChild(rect);
+      });
+    } else {
+      const rowH = blockH/n;
+      const gradBase = getOrMakeBaseGrad(defs, 'h');
+      order.forEach((ri)=>{
+        const y = y0 + ri*rowH;
+        let offset = blk.offsets[useOrder[ri]] + rampDelta(ri, n);
+        if(flipV) offset = tl - offset;
+        const gid = 'g_'+bi+'_'+ri+'_'+Math.round(offset);
+        const grad = el('linearGradient', {id:gid, href:'#'+gradBase, 'gradientTransform':`translate(${offset} 0)`});
+        defs.appendChild(grad);
+        const cx = W/2, cy = y+rowH/2;
+        const rect = el('rect', {x:0, y, width:W, height:rowH+0.6, fill:`url(#${gid})`,
+          transform: rotateAngle ? `rotate(${rotateAngle} ${cx} ${cy})` : null});
+        g.appendChild(rect);
+      });
+    }
+  });
+  return g;
+}
+
+// ---------- noise overlay ----------
+function addNoiseOverlay(svg, defs){
+  if(!noiseOn) return;
+  const baseFreq = (0.9 - (noiseSize/100)*0.85).toFixed(4);
+  const filterId = 'noiseFilter';
+  const filter = el('filter', {id:filterId, x:'-5%', y:'-5%', width:'110%', height:'110%'});
+  filter.appendChild(el('feTurbulence', {
+    type:'fractalNoise', baseFrequency:baseFreq, numOctaves:noiseOctaves,
+    seed:noiseSeed, stitchTiles:'stitch', result:'turb'
+  }));
+  filter.appendChild(el('feColorMatrix', {'in':'turb', type:'saturate', values:'0'}));
+  defs.appendChild(filter);
+
+  const overlay = el('rect', {
+    x:0, y:0, width:W, height:H, filter:`url(#${filterId})`,
+    style:`mix-blend-mode:${noiseBlend};opacity:${noiseOpacity/100}`
+  });
+  svg.appendChild(overlay);
+}
+
+// ---------- render orchestration ----------
+function render(){
+  const host = document.getElementById('svgHost');
+  const svg = el('svg', {viewBox:`0 0 ${W} ${H}`, xmlns:NS});
+  const defs = el('defs', {});
+  svg.appendChild(defs);
+  svg.appendChild(el('rect', {x:0,y:0,width:W,height:H,fill:'#000'}));
+
+  const content = buildContent(defs);
+
+  if(!reflectOn){
+    svg.appendChild(content);
+  } else {
+    defs.appendChild(content);
+    let sourceClipRect, targetClipRect, mirrorTransform;
+    if(reflectAxis === 'horizontal'){
+      const lineY = H * (reflectPos/100);
+      sourceClipRect = {x:0,y:0,width:W,height:lineY};
+      targetClipRect = {x:0,y:lineY,width:W,height:H-lineY};
+      mirrorTransform = `translate(0 ${2*lineY}) scale(1 -1)`;
+    } else {
+      const lineX = W * (reflectPos/100);
+      sourceClipRect = {x:0,y:0,width:lineX,height:H};
+      targetClipRect = {x:lineX,y:0,width:W-lineX,height:H};
+      mirrorTransform = `translate(${2*lineX} 0) scale(-1 1)`;
+    }
+    const clipS = el('clipPath', {id:'clipSource'});
+    clipS.appendChild(el('rect', sourceClipRect));
+    defs.appendChild(clipS);
+    const clipT = el('clipPath', {id:'clipTarget'});
+    clipT.appendChild(el('rect', targetClipRect));
+    defs.appendChild(clipT);
+
+    const gSource = el('g', {'clip-path':'url(#clipSource)'});
+    gSource.appendChild(el('use', {href:'#content'}));
+    svg.appendChild(gSource);
+
+    const gTargetOuter = el('g', {'clip-path':'url(#clipTarget)'});
+    const gTargetInner = el('g', {transform:mirrorTransform});
+    gTargetInner.appendChild(el('use', {href:'#content'}));
+    gTargetOuter.appendChild(gTargetInner);
+    svg.appendChild(gTargetOuter);
+  }
+
+  addNoiseOverlay(svg, defs);
+
+  host.innerHTML = '';
+  host.appendChild(svg);
+}
+
+// ---------- wiring: orientation ----------
+function wireOrientationButtons(){
+  document.querySelectorAll('[data-orient]').forEach(btn=>{
+    btn.onclick = ()=>{
+      document.querySelectorAll('[data-orient]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      defaultOrientation = btn.dataset.orient;
+      document.getElementById('barsLabel').textContent = defaultOrientation === 'vertical' ? 'Columns' : 'Rows';
+      blocks.forEach(b=> b.orientation = defaultOrientation);
+      renderBlockOrientation();
+      render();
+    };
+  });
+}
+
+wireControl('cols','colsNum', v=>{ numBars=v; initBlocks(); renderBlockOrientation(); renderStagger(); render(); });
+wireControl('cycle','cycleNum', v=>{ baseLength=v; renderStagger(); render(); });
+wireControl('repeatCount','repeatCountNum', v=>{ repeatCount=v; renderStagger(); render(); });
+wireControl('decay','decayNum', v=>{ decayPct=v; renderStagger(); render(); });
+wireControl('blocks','blocksNum', v=>{ numBlocks=v; initBlocks(); renderBlockOrientation(); renderStagger(); render(); });
+wireControl('rotate','rotateNum', v=>{ rotateAngle=v; render(); });
+wireControl('rampAmt','rampAmtNum', v=>{ rampAmt=v; render(); });
+wireControl('rampFreq','rampFreqNum', v=>{ rampFreq=v; render(); });
+wireControl('reflectPos','reflectPosNum', v=>{ reflectPos=v; render(); });
+wireControl('noiseSize','noiseSizeNum', v=>{ noiseSize=v; render(); });
+wireControl('noiseOctaves','noiseOctavesNum', v=>{ noiseOctaves=v; render(); });
+wireControl('noiseOpacity','noiseOpacityNum', v=>{ noiseOpacity=v; render(); });
+
+function wireAnchorButtons(){
+  document.querySelectorAll('#anchorGroup [data-anchor], [data-anchor="wave"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      document.querySelectorAll('[data-anchor]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      rampAnchor = btn.dataset.anchor;
+      document.getElementById('freqControlWrap').style.display = rampAnchor==='wave' ? 'block' : 'none';
+      render();
+    };
+  });
+}
+function wireDirectionButtons(){
+  document.querySelectorAll('#directionGroup [data-dir]').forEach(btn=>{
+    btn.onclick = ()=>{
+      document.querySelectorAll('#directionGroup [data-dir]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      rampDir = btn.dataset.dir;
+      render();
+    };
+  });
+}
+function wireNoiseBlendButtons(){
+  document.querySelectorAll('#noiseBlendGroup [data-blend]').forEach(btn=>{
+    btn.onclick = ()=>{
+      document.querySelectorAll('#noiseBlendGroup [data-blend]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      noiseBlend = btn.dataset.blend;
+      render();
+    };
+  });
+}
+wireAnchorButtons();
+wireDirectionButtons();
+wireOrientationButtons();
+wireNoiseBlendButtons();
+
+document.getElementById('randomizeOffsets').addEventListener('click', ()=>{
+  const tl = totalLength();
+  blocks.forEach(b=> b.offsets = b.offsets.map(()=>rand(0,tl)));
+  renderStagger();
+  render();
+});
+document.getElementById('resetOffsets').addEventListener('click', ()=>{
+  blocks.forEach(b=> b.offsets = b.offsets.map(()=>0));
+  renderStagger();
+  render();
+});
+
+function wireFlipReflectButtons(){
+  document.getElementById('flipH').onclick = ()=>{
+    flipH = !flipH; document.getElementById('flipH').classList.toggle('active'); render();
+  };
+  document.getElementById('flipV').onclick = ()=>{
+    flipV = !flipV; document.getElementById('flipV').classList.toggle('active'); render();
+  };
+  document.getElementById('reflectOn').onclick = ()=>{
+    reflectOn = !reflectOn; document.getElementById('reflectOn').classList.toggle('active'); render();
+  };
+  document.getElementById('reflectAxis').onclick = (e)=>{
+    reflectAxis = reflectAxis === 'horizontal' ? 'vertical' : 'horizontal';
+    e.target.textContent = reflectAxis === 'horizontal' ? 'Split: horizontal' : 'Split: vertical';
+    render();
+  };
+}
+wireFlipReflectButtons();
+
+document.getElementById('noiseOn').addEventListener('click', ()=>{
+  noiseOn = !noiseOn;
+  document.getElementById('noiseOn').classList.toggle('active');
+  render();
+});
+document.getElementById('rerollNoise').addEventListener('click', ()=>{
+  noiseSeed = Math.floor(rand(0,1000));
+  render();
+});
+
+document.getElementById('randomizeAll').addEventListener('click', ()=>{
+  const tl = totalLength();
+  blocks.forEach(b=> b.offsets = b.offsets.map(()=>rand(0,tl)));
+  renderStagger();
+  render();
+});
+
+// ---------- full reset ----------
+document.getElementById('resetAll').addEventListener('click', ()=>{
+  applyDefaults();
+
+  setControl('cols','colsNum', numBars);
+  setControl('cycle','cycleNum', baseLength);
+  setControl('repeatCount','repeatCountNum', repeatCount);
+  setControl('decay','decayNum', decayPct);
+  setControl('blocks','blocksNum', numBlocks);
+  setControl('rotate','rotateNum', rotateAngle);
+  setControl('rampAmt','rampAmtNum', rampAmt);
+  setControl('rampFreq','rampFreqNum', rampFreq);
+  setControl('reflectPos','reflectPosNum', reflectPos);
+  setControl('noiseSize','noiseSizeNum', noiseSize);
+  setControl('noiseOctaves','noiseOctavesNum', noiseOctaves);
+  setControl('noiseOpacity','noiseOpacityNum', noiseOpacity);
+
+  document.getElementById('barsLabel').textContent = 'Columns';
+  document.querySelectorAll('[data-orient]').forEach(b=>b.classList.toggle('active', b.dataset.orient==='vertical'));
+  document.querySelectorAll('[data-anchor]').forEach(b=>b.classList.toggle('active', b.dataset.anchor==='left'));
+  document.getElementById('freqControlWrap').style.display = 'none';
+  document.querySelectorAll('#directionGroup [data-dir]').forEach(b=>b.classList.toggle('active', b.dataset.dir==='up'));
+  document.getElementById('flipH').classList.remove('active');
+  document.getElementById('flipV').classList.remove('active');
+  document.getElementById('reflectOn').classList.remove('active');
+  document.getElementById('reflectAxis').textContent = 'Split: horizontal';
+  document.getElementById('noiseOn').classList.remove('active');
+  document.querySelectorAll('#noiseBlendGroup [data-blend]').forEach(b=>b.classList.toggle('active', b.dataset.blend==='overlay'));
+
+  renderStops();
+  renderBlockOrientation();
+  renderStagger();
+  render();
+});
+
+document.getElementById('exportSvg').addEventListener('click', ()=>{
+  const svgEl = document.querySelector('#svgHost svg');
+  const src = '<?xml version="1.0" standalone="no"?>\r\n' + new XMLSerializer().serializeToString(svgEl);
+  const blob = new Blob([src], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='gradient-pattern.svg'; a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('exportPng').addEventListener('click', ()=>{
+  const svgEl = document.querySelector('#svgHost svg');
+  const src = new XMLSerializer().serializeToString(svgEl);
+  const svg64 = btoa(unescape(encodeURIComponent(src)));
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = W*2; canvas.height = H*2;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img,0,0,W*2,H*2);
+    canvas.toBlob(blob=>{
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='gradient-pattern.png'; a.click();
+      URL.revokeObjectURL(url);
+    });
+  };
+  img.src = 'data:image/svg+xml;base64,'+svg64;
+});
+
+// init
+renderStops();
+renderBlockOrientation();
+renderStagger();
+render();
+</script>
+</body>
+</html>
