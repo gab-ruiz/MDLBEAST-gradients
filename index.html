@@ -122,19 +122,20 @@
         <div class="gradient-bar" id="gradientBar"></div>
         <p class="bar-caption">Drag the handles to reposition each color along the gradient.</p>
       </div>
+      <button class="btn small-btn" id="flipGradient" style="margin-bottom:14px;">Flip</button>
 
       <div class="eyebrow">Bar orientation</div>
       <div class="toggle-group">
-        <button class="toggle active" data-orient="vertical">Vertical (columns)</button>
-        <button class="toggle" data-orient="horizontal">Horizontal (rows)</button>
+        <button class="toggle active" data-orient="vertical">Vertical</button>
+        <button class="toggle" data-orient="horizontal">Horizontal</button>
       </div>
 
       <div class="eyebrow">Structure</div>
       <div class="control">
         <label id="barsLabel">Columns</label>
         <div class="input-row">
-          <input type="range" id="cols" min="2" max="20" value="17">
-          <input type="number" id="colsNum" min="2" max="20" value="17">
+          <input type="range" id="cols" min="2" max="30" value="17">
+          <input type="number" id="colsNum" min="2" max="30" value="17">
         </div>
       </div>
 
@@ -143,8 +144,8 @@
       <div class="control">
         <label>Base length</label>
         <div class="input-row">
-          <input type="range" id="cycle" min="100" max="1000" value="1000">
-          <input type="number" id="cycleNum" min="100" max="1000" value="1000">
+          <input type="range" id="cycle" min="100" max="6000" value="2000">
+          <input type="number" id="cycleNum" min="100" max="6000" value="2000">
         </div>
       </div>
       <div class="control">
@@ -194,13 +195,18 @@
           <input type="number" id="rampAmtNum" min="0" max="100" value="36">
         </div>
       </div>
-
-      <div class="eyebrow">Rotate</div>
       <div class="control">
-        <label>Angle (°)</label>
+        <label>Ease <span style="color:var(--text-dim);">— reshapes a straight rise into a curve (negative = fast start, positive = slow start)</span></label>
         <div class="input-row">
-          <input type="range" id="rotate" min="-45" max="45" value="0">
-          <input type="number" id="rotateNum" min="-45" max="45" value="0">
+          <input type="range" id="easeAmt" min="-100" max="100" value="0">
+          <input type="number" id="easeAmtNum" min="-100" max="100" value="0">
+        </div>
+      </div>
+      <div class="control">
+        <label>Vertical position <span style="color:var(--text-dim);">— slides the whole curve up or down without changing its shape</span></label>
+        <div class="input-row">
+          <input type="range" id="panPct" min="-100" max="100" value="0">
+          <input type="number" id="panPctNum" min="-100" max="100" value="0">
         </div>
       </div>
     </div>
@@ -229,13 +235,14 @@
           <span>Horizontal (mirrors top / bottom)</span>
           <button class="toggle" id="reflectHOn" style="padding:5px 9px;">Enable</button>
         </div>
-        <div class="control" style="margin-bottom:0;">
+        <div class="control">
           <label>Line position</label>
           <div class="input-row">
             <input type="range" id="reflectHPos" min="0" max="100" value="50">
             <input type="number" id="reflectHPosNum" min="0" max="100" value="50">
           </div>
         </div>
+        <button class="toggle" id="flipColorsH" style="width:100%;">Flip colors</button>
       </div>
 
       <div class="reflect-block">
@@ -243,12 +250,21 @@
           <span>Vertical (mirrors left / right)</span>
           <button class="toggle" id="reflectVOn" style="padding:5px 9px;">Enable</button>
         </div>
-        <div class="control" style="margin-bottom:0;">
+        <div class="control">
           <label>Line position</label>
           <div class="input-row">
             <input type="range" id="reflectVPos" min="0" max="100" value="50">
             <input type="number" id="reflectVPosNum" min="0" max="100" value="50">
           </div>
+        </div>
+        <button class="toggle" id="flipColorsV" style="width:100%;">Flip colors</button>
+      </div>
+
+      <div class="control">
+        <label>Curve <span style="color:var(--text-dim);">— bars bunch closer together near the reflect line, like a perspective vanishing point</span></label>
+        <div class="input-row">
+          <input type="range" id="curveAmt" min="0" max="100" value="0">
+          <input type="number" id="curveAmtNum" min="0" max="100" value="0">
         </div>
       </div>
     </div>
@@ -294,6 +310,7 @@
     <!-- SECTION 6: ANIMATE -->
     <div class="section">
       <div class="sec-title"><span><span class="sec-num">6.</span> Animate</span></div>
+      <button class="reset-link" id="resetAnimTime" style="margin:-8px 0 14px;" title="Reset animation to frame 0">↺ Reset animation</button>
 
       <div class="anim-block">
         <div class="ab-head">
@@ -330,8 +347,8 @@
         <div class="control">
           <label>Speed</label>
           <div class="input-row">
-            <input type="range" id="eqSpeed" min="5" max="200" value="50">
-            <input type="number" id="eqSpeedNum" min="5" max="200" value="50">
+            <input type="range" id="eqSpeed" min="1" max="200" value="15">
+            <input type="number" id="eqSpeedNum" min="1" max="200" value="15">
           </div>
         </div>
         <div class="control">
@@ -357,6 +374,47 @@
       <div class="eyebrow">Export</div>
       <p style="font-size:10.5px;color:var(--text-dim);margin:0 0 10px;">Every exported video is a fixed 15 seconds, always starting from the beginning of the loop.</p>
       <button class="btn primary" id="exportVideo">Export video (WebM)</button>
+    </div>
+
+    <!-- SECTION 7: REPEAT BLOCKS -->
+    <div class="section">
+      <div class="sec-title"><span><span class="sec-num">7.</span> Repeat blocks</span></div>
+      <p style="font-size:10.5px;color:var(--text-dim);margin:0 0 12px;">Repeats the whole composite (reflect, noise, everything) in a grid — both axes can run at once.</p>
+      <div class="control">
+        <label>Blocks horizontal</label>
+        <div class="input-row">
+          <input type="range" id="blocksH" min="1" max="8" value="1">
+          <input type="number" id="blocksHNum" min="1" max="8" value="1">
+        </div>
+      </div>
+      <div class="control">
+        <label>Ease horizontal <span style="color:var(--text-dim);">— 0 = equal columns; away from 0, wider on one side</span></label>
+        <div class="input-row">
+          <input type="range" id="blocksEaseH" min="-100" max="100" value="0">
+          <input type="number" id="blocksEaseHNum" min="-100" max="100" value="0">
+        </div>
+      </div>
+      <div class="control">
+        <label>Blocks vertical</label>
+        <div class="input-row">
+          <input type="range" id="blocksV" min="1" max="8" value="1">
+          <input type="number" id="blocksVNum" min="1" max="8" value="1">
+        </div>
+      </div>
+      <div class="control" style="margin-bottom:0;">
+        <label>Ease vertical <span style="color:var(--text-dim);">— 0 = equal rows; away from 0, taller on one side</span></label>
+        <div class="input-row">
+          <input type="range" id="blocksEaseV" min="-100" max="100" value="0">
+          <input type="number" id="blocksEaseVNum" min="-100" max="100" value="0">
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 8: SAVED CONFIGS -->
+    <div class="section">
+      <div class="sec-title"><span><span class="sec-num">8.</span> Configuraciones</span></div>
+      <p style="font-size:10.5px;color:var(--text-dim);margin:0 0 12px;">Cada botón carga un diseño completo (colores, forma, reflejo, ruido, animación) — usalo como punto de partida y modificá libremente.</p>
+      <div class="preset-grid" id="fullPresetGrid" style="grid-template-columns:1fr 1fr;"></div>
     </div>
 
     <div class="section">
@@ -388,24 +446,83 @@ const PRESETS = [
 
 const DEFAULTS = {
   stops: PRESETS[4].stops.map(s=>({...s})),
-  numBars: 17, baseLength: 1000, repeatCount: 1, decayPct: 70,
+  numBars: 17, baseLength: 2000, repeatCount: 1, decayPct: 70,
   orientation: 'vertical',
   rotateAngle: 0,
-  rampAnchor: 'center', rampDir: 'up', rampAmt: 36, rampFreq: 1,
-  reflectHOn: false, reflectHPos: 50, reflectVOn: false, reflectVPos: 50,
+  rampAnchor: 'center', rampDir: 'up', rampAmt: 36, rampFreq: 1, panPct: 0, easeAmt: 0,
+  reflectHOn: false, reflectHPos: 50, reflectVOn: false, reflectVPos: 50, flipColorsH: false, flipColorsV: false, curveAmt: 0, reflectVSteps: 1, reflectHSteps: 1,
   noiseOn: false, noiseSize: 30, noiseOctaves: 3, noiseOpacity: 35, noiseBlend: 'overlay', noiseSeed: 1,
   colorScrollOn: false, colorScrollSpeed: 60, colorScrollDir: 1, loopStretch: 1,
-  eqOn: false, eqSpeed: 50, eqFreq: 1, eqAmt: 60, eqDir: 1
+  eqOn: false, eqSpeed: 15, eqFreq: 1, eqAmt: 60, eqDir: 1,
+  blocksH: 1, blocksEaseH: 0, blocksV: 1, blocksEaseV: 0
 };
+
+// Full saved configurations — each button below restores every setting, not just colors.
+// Edit this array (or use "Copiar código" to generate a new entry) before publishing to GitHub.
+const FULL_PRESETS = [
+  {name:"Basic Vertical", state:{
+    stops:PRESETS[3].stops, numBars:23, baseLength:2388, repeatCount:1, decayPct:70, orientation:'vertical',
+    rotateAngle:0, rampAnchor:'center', rampDir:'up', rampAmt:38, rampFreq:1, panPct:-2,
+    reflectHOn:false, reflectHPos:50, reflectVOn:false, reflectVPos:50,
+    noiseOn:true, noiseSize:8, noiseOctaves:8, noiseOpacity:45, noiseBlend:'overlay',
+    colorScrollSpeed:60, colorScrollDir:1, loopStretch:1, eqSpeed:15, eqFreq:1, eqAmt:60, eqDir:1
+  }},
+  {name:"Diamond Horizontal", state:{
+    stops:PRESETS[7].stops, numBars:27, baseLength:1800, repeatCount:1, decayPct:70, orientation:'horizontal',
+    rotateAngle:0, rampAnchor:'center', rampDir:'up', rampAmt:52, rampFreq:1, panPct:0,
+    reflectHOn:false, reflectHPos:50, reflectVOn:true, reflectVPos:50,
+    noiseOn:true, noiseSize:5, noiseOctaves:7, noiseOpacity:80, noiseBlend:'overlay',
+    colorScrollSpeed:60, colorScrollDir:1, loopStretch:1, eqSpeed:15, eqFreq:1, eqAmt:60, eqDir:1
+  }},
+  {name:"Diamond Vertical", state:{
+    stops:PRESETS[5].stops, numBars:23, baseLength:2388, repeatCount:1, decayPct:70, orientation:'vertical',
+    rotateAngle:0, rampAnchor:'center', rampDir:'up', rampAmt:53, rampFreq:1, panPct:-2,
+    reflectHOn:true, reflectHPos:50, reflectVOn:false, reflectVPos:50,
+    noiseOn:true, noiseSize:8, noiseOctaves:8, noiseOpacity:45, noiseBlend:'overlay',
+    colorScrollSpeed:60, colorScrollDir:1, loopStretch:1, eqSpeed:15, eqFreq:1, eqAmt:60, eqDir:1
+  }},
+  {name:"Diamond Bottom", state:{
+    stops:[{color:"#190101",pos:0},{color:"#c90f27",pos:35},{color:"#fa54ff",pos:70},{color:"#ffffff",pos:100}],
+    numBars:26, baseLength:1229, repeatCount:1, decayPct:70, orientation:'vertical',
+    rotateAngle:0, rampAnchor:'center', rampDir:'up', rampAmt:36, rampFreq:1, panPct:-1,
+    reflectHOn:true, reflectHPos:71, reflectVOn:false, reflectVPos:50,
+    noiseOn:true, noiseSize:14, noiseOctaves:7, noiseOpacity:96, noiseBlend:'overlay',
+    colorScrollSpeed:60, colorScrollDir:1, loopStretch:1, eqSpeed:15, eqFreq:1, eqAmt:60, eqDir:1
+  }},
+  {name:"Dunes", state:{
+    stops:PRESETS[7].stops, numBars:30, baseLength:1800, repeatCount:1, decayPct:70, orientation:'horizontal',
+    rotateAngle:0, rampAnchor:'wave', rampDir:'up', rampAmt:68, rampFreq:2, panPct:19,
+    reflectHOn:false, reflectHPos:50, reflectVOn:true, reflectVPos:50,
+    noiseOn:true, noiseSize:5, noiseOctaves:7, noiseOpacity:80, noiseBlend:'overlay',
+    colorScrollSpeed:60, colorScrollDir:1, loopStretch:1, eqSpeed:15, eqFreq:1, eqAmt:60, eqDir:1
+  }},
+  {name:"Weaves", state:{
+    stops:PRESETS[1].stops, numBars:17, baseLength:672, repeatCount:1, decayPct:70, orientation:'vertical',
+    rotateAngle:0, rampAnchor:'wave', rampDir:'up', rampAmt:33, rampFreq:2, panPct:37,
+    reflectHOn:true, reflectHPos:50, reflectVOn:false, reflectVPos:50,
+    noiseOn:true, noiseSize:5, noiseOctaves:7, noiseOpacity:80, noiseBlend:'overlay',
+    colorScrollSpeed:60, colorScrollDir:1, loopStretch:1, eqSpeed:15, eqFreq:1, eqAmt:60, eqDir:1
+  }},
+  {name:"Blue Bloom", state:{
+    stops:[{color:"#04062c",pos:0},{color:"#203a53",pos:25},{color:"#2785dd",pos:50},{color:"#f5d1e9",pos:75},{color:"#eed3ee",pos:100}],
+    numBars:10, baseLength:594, repeatCount:2, decayPct:82, orientation:'vertical',
+    rotateAngle:0, rampAnchor:'left', rampDir:'up', rampAmt:91, rampFreq:1, easeAmt:40, panPct:33,
+    reflectHOn:true, reflectHPos:24, flipColorsH:false, reflectVOn:true, reflectVPos:50, flipColorsV:true,
+    curveAmt:0, reflectVSteps:1, reflectHSteps:1,
+    noiseOn:true, noiseSize:30, noiseOctaves:7, noiseOpacity:100, noiseBlend:'overlay',
+    colorScrollSpeed:60, colorScrollDir:1, loopStretch:1, eqSpeed:15, eqFreq:1, eqAmt:60, eqDir:1
+  }}
+];
 
 let stops, numBars, baseLength, repeatCount, decayPct, orientation;
 let offsets = [];
 let rotateAngle;
-let rampAnchor, rampDir, rampAmt, rampFreq;
-let reflectHOn, reflectHPos, reflectVOn, reflectVPos;
+let rampAnchor, rampDir, rampAmt, rampFreq, panPct, easeAmt;
+let reflectHOn, reflectHPos, reflectVOn, reflectVPos, flipColorsH, flipColorsV, curveAmt, reflectVSteps, reflectHSteps;
 let noiseOn, noiseSize, noiseOctaves, noiseOpacity, noiseBlend, noiseSeed;
 let colorScrollOn, colorScrollSpeed, colorScrollDir, loopStretch;
 let eqOn, eqSpeed, eqFreq, eqAmt, eqDir;
+let blocksH, blocksEaseH, blocksV, blocksEaseV;
 let activePreset = 4;
 
 function rand(min,max){ return Math.random()*(max-min)+min; }
@@ -434,18 +551,60 @@ function applyDefaults(){
   orientation = DEFAULTS.orientation;
   rotateAngle = DEFAULTS.rotateAngle;
   rampAnchor = DEFAULTS.rampAnchor; rampDir = DEFAULTS.rampDir; rampAmt = DEFAULTS.rampAmt; rampFreq = DEFAULTS.rampFreq;
+  panPct = DEFAULTS.panPct; easeAmt = DEFAULTS.easeAmt;
   reflectHOn = DEFAULTS.reflectHOn; reflectHPos = DEFAULTS.reflectHPos;
+  flipColorsH = DEFAULTS.flipColorsH; flipColorsV = DEFAULTS.flipColorsV;
+  curveAmt = DEFAULTS.curveAmt;
+  reflectVSteps = DEFAULTS.reflectVSteps; reflectHSteps = DEFAULTS.reflectHSteps;
   reflectVOn = DEFAULTS.reflectVOn; reflectVPos = DEFAULTS.reflectVPos;
   noiseOn = DEFAULTS.noiseOn; noiseSize = DEFAULTS.noiseSize; noiseOctaves = DEFAULTS.noiseOctaves;
   noiseOpacity = DEFAULTS.noiseOpacity; noiseBlend = DEFAULTS.noiseBlend; noiseSeed = DEFAULTS.noiseSeed;
   colorScrollOn = DEFAULTS.colorScrollOn; colorScrollSpeed = DEFAULTS.colorScrollSpeed; colorScrollDir = DEFAULTS.colorScrollDir;
   loopStretch = DEFAULTS.loopStretch;
   eqOn = DEFAULTS.eqOn; eqSpeed = DEFAULTS.eqSpeed; eqFreq = DEFAULTS.eqFreq; eqAmt = DEFAULTS.eqAmt; eqDir = DEFAULTS.eqDir;
+  blocksH = DEFAULTS.blocksH; blocksEaseH = DEFAULTS.blocksEaseH; blocksV = DEFAULTS.blocksV; blocksEaseV = DEFAULTS.blocksEaseV;
   initOffsets();
 }
 applyDefaults();
 
-// ---------- generic slider <-> number wiring ----------
+function loadFullPreset(idx){
+  const state = FULL_PRESETS[idx].state;
+  stops = state.stops.map(s=>({...s}));
+  numBars = state.numBars; baseLength = state.baseLength;
+  repeatCount = state.repeatCount; decayPct = state.decayPct;
+  orientation = state.orientation;
+  rotateAngle = state.rotateAngle;
+  rampAnchor = state.rampAnchor; rampDir = state.rampDir; rampAmt = state.rampAmt; rampFreq = state.rampFreq;
+  panPct = state.panPct !== undefined ? state.panPct : 0;
+  easeAmt = state.easeAmt !== undefined ? state.easeAmt : 0;
+  reflectHOn = state.reflectHOn; reflectHPos = state.reflectHPos;
+  flipColorsH = state.flipColorsH !== undefined ? state.flipColorsH : false;
+  flipColorsV = state.flipColorsV !== undefined ? state.flipColorsV : false;
+  curveAmt = state.curveAmt !== undefined ? state.curveAmt : 0;
+  reflectVSteps = state.reflectVSteps !== undefined ? state.reflectVSteps : 1;
+  reflectHSteps = state.reflectHSteps !== undefined ? state.reflectHSteps : 1;
+  reflectVOn = state.reflectVOn; reflectVPos = state.reflectVPos;
+  noiseOn = state.noiseOn; noiseSize = state.noiseSize; noiseOctaves = state.noiseOctaves;
+  noiseOpacity = state.noiseOpacity; noiseBlend = state.noiseBlend;
+  colorScrollSpeed = state.colorScrollSpeed; colorScrollDir = state.colorScrollDir; loopStretch = state.loopStretch;
+  eqSpeed = state.eqSpeed; eqFreq = state.eqFreq; eqAmt = state.eqAmt; eqDir = state.eqDir;
+  blocksH = state.blocksH !== undefined ? state.blocksH : 1;
+  blocksEaseH = state.blocksEaseH !== undefined ? state.blocksEaseH : 0;
+  blocksV = state.blocksV !== undefined ? state.blocksV : 1;
+  blocksEaseV = state.blocksEaseV !== undefined ? state.blocksEaseV : 0;
+  colorScrollOn = false; eqOn = false;
+  if(animRunning){ cancelAnimationFrame(animRAF); animRAF=null; animRunning=false; }
+  activePreset = null;
+  initOffsets();
+
+  syncAllControlsToState();
+  renderPresets();
+  renderStops();
+  renderGradientBar();
+  renderStagger();
+  renderNow();
+}
+
 function wireControl(sliderId, numberId, onChange){
   const slider = document.getElementById(sliderId);
   const number = document.getElementById(numberId);
@@ -556,6 +715,11 @@ document.getElementById('addStop').addEventListener('click', ()=>{
   clearActivePreset();
   renderStops(); renderGradientBar(); renderNow();
 });
+document.getElementById('flipGradient').addEventListener('click', ()=>{
+  stops = stops.map(s => ({...s, pos: Math.round((100 - s.pos)*10)/10}));
+  clearActivePreset();
+  renderStops(); renderGradientBar(); renderNow();
+});
 
 // ---------- gradient position bar ----------
 function renderGradientBar(){
@@ -642,6 +806,10 @@ function rampDelta(idx, n, tl){
   else if(rampAnchor==='right')  f = (1-Math.cos((1-t)*Math.PI))/2;
   else if(rampAnchor==='center') f = (1+Math.cos((t-0.5)*2*Math.PI))/2;
   else /* wave */                f = (Math.cos(2*Math.PI*rampFreq*t)+1)/2;
+  if(easeAmt !== 0){
+    const easePower = Math.pow(2, easeAmt/50); // 0 -> 1 (no change), +100 -> 4x (slow start), -100 -> 0.25x (fast start)
+    f = Math.pow(Math.max(0,Math.min(1,f)), easePower);
+  }
   const magnitude = f * (rampAmt/100) * tl;
   return rampDir==='up' ? -magnitude : magnitude;
 }
@@ -659,8 +827,8 @@ function el(tag, attrs){
 }
 
 // ---------- gradient with repeat + decay ----------
-function getOrMakeBaseGrad(defs, orient){
-  const id = 'mainGrad_'+orient;
+function getOrMakeBaseGrad(defs, orient, reversed){
+  const id = 'mainGrad_'+orient+(reversed?'_rev':'');
   if(defs.querySelector('#'+id)) return id;
   const tl = totalLengthFor(orient);
   const attrs = orient==='v'
@@ -668,11 +836,12 @@ function getOrMakeBaseGrad(defs, orient){
     : {id, gradientUnits:'userSpaceOnUse', x1:0,y1:0,x2:tl,y2:0, spreadMethod: (colorScrollOn||eqOn) ? 'repeat' : 'pad'};
   const grad = el('linearGradient', attrs);
   const sorted = [...stops].sort((a,b)=>a.pos-b.pos);
+  const iterStops = reversed ? [...sorted].reverse() : sorted;
   let cursor = 0, segLen = autoBaseLength(orient);
   const decay = decayPct/100;
   for(let r=0;r<repeatCount;r++){
-    sorted.forEach((s)=>{
-      const localFrac = s.pos/100;
+    iterStops.forEach((s)=>{
+      const localFrac = reversed ? (1 - s.pos/100) : s.pos/100; // reversed: same palette, opposite order
       const pos = ((cursor + localFrac*segLen)/tl*100);
       grad.appendChild(el('stop', {offset:pos+'%', 'stop-color':s.color}));
     });
@@ -691,28 +860,49 @@ function eqDelta(idx, n, tl, tMs){
   if(!eqOn || n<=1) return 0;
   const t = idx/(n-1);
   const phase = (tMs/1000) * eqSpeed * eqDir * 0.3;
-  const f = (Math.cos(2*Math.PI*eqFreq*t - phase) + 1) / 2;
-  return -(f * (eqAmt/100) * tl);
+  const f = Math.cos(2*Math.PI*eqFreq*t - phase); // -1..1, centered — oscillates both ways instead of only pushing toward one extreme
+  const maxDisplacement = Math.min(tl*0.35, 350); // capped so it doesn't blow out to the pad-color extremes even with a large Base length
+  return f * (eqAmt/100) * maxDisplacement;
 }
 
 // ---------- core build (single set of bars, no blocks) ----------
-function buildContent(defs, tMs, regionW, regionH){
+function buildContent(defs, tMs, regionW, regionH, colorFlip, contentId){
   if(regionW === undefined) regionW = W;
   if(regionH === undefined) regionH = H;
-  const g = el('g', {id:'content'});
+  if(contentId === undefined) contentId = 'content';
+  const g = el('g', {id:contentId});
   const n = offsets.length;
   const scroll = colorScrollDelta(tMs);
 
+  // Compute per-bar widths, compressed near the active reflect line when Curve > 0 —
+  // this is spacing compression (a perspective/vanishing-point illusion), not rotation.
+  function computeWidths(total, lineCoord){
+    const uniform = total/n;
+    if(!(curveAmt>0 && lineCoord!==null)) return Array(n).fill(uniform);
+    const weights = [];
+    for(let i=0;i<n;i++){
+      const centerU = (i+0.5)*uniform;
+      const distFrac = Math.max(0, 1 - Math.abs(centerU-lineCoord)/(total/2)); // 1 at line, 0 far
+      weights.push(1 - (curveAmt/100)*distFrac*0.92);
+    }
+    const totalW = weights.reduce((a,b)=>a+b,0);
+    return weights.map(w => (w/totalW)*total);
+  }
+
   if(orientation === 'vertical'){
-    const colW = regionW/n;
-    const gradBase = getOrMakeBaseGrad(defs, 'v');
+    const gradBase = getOrMakeBaseGrad(defs, 'v', colorFlip);
     const tl = totalLengthFor('v');
+    const curveLineX = (curveAmt>0 && reflectVOn) ? Math.min(regionW-5, Math.max(5, regionW*(reflectVPos/100))) : null;
+    const widths = computeWidths(regionW, curveLineX);
+    let xCursor = 0;
     for(let ci=0; ci<n; ci++){
-      const x = ci*colW;
+      const colW = widths[ci];
+      const x = xCursor;
+      xCursor += colW;
       // No JS-side wrapping here — the gradient's own pad/repeat edges handle
       // out-of-range offsets smoothly, avoiding the hard jump we used to get.
-      const offset = offsets[ci] + rampDelta(ci, n, tl) + scroll + eqDelta(ci, n, tl, tMs);
-      const gid = 'g_'+ci+'_'+Math.round(offset);
+      const offset = offsets[ci] + rampDelta(ci, n, tl) + scroll + eqDelta(ci, n, tl, tMs) + (panPct/100)*tl;
+      const gid = (colorFlip?'gr_':'g_')+ci+'_'+Math.round(offset);
       const grad = el('linearGradient', {id:gid, href:'#'+gradBase, 'gradientTransform':`translate(0 ${offset})`});
       defs.appendChild(grad);
       const cx = x+colW/2, cy = regionH/2;
@@ -721,13 +911,17 @@ function buildContent(defs, tMs, regionW, regionH){
       g.appendChild(rect);
     }
   } else {
-    const rowH = regionH/n;
-    const gradBase = getOrMakeBaseGrad(defs, 'h');
+    const gradBase = getOrMakeBaseGrad(defs, 'h', colorFlip);
     const tl = totalLengthFor('h');
+    const curveLineY = (curveAmt>0 && reflectHOn) ? Math.min(regionH-5, Math.max(5, regionH*(reflectHPos/100))) : null;
+    const heights = computeWidths(regionH, curveLineY);
+    let yCursor = 0;
     for(let ri=0; ri<n; ri++){
-      const y = ri*rowH;
-      const offset = offsets[ri] + rampDelta(ri, n, tl) + scroll + eqDelta(ri, n, tl, tMs);
-      const gid = 'g_'+ri+'_'+Math.round(offset);
+      const rowH = heights[ri];
+      const y = yCursor;
+      yCursor += rowH;
+      const offset = offsets[ri] + rampDelta(ri, n, tl) + scroll + eqDelta(ri, n, tl, tMs) + (panPct/100)*tl;
+      const gid = (colorFlip?'gr_':'g_')+ri+'_'+Math.round(offset);
       const grad = el('linearGradient', {id:gid, href:'#'+gradBase, 'gradientTransform':`translate(${offset} 0)`});
       defs.appendChild(grad);
       const cx = regionW/2, cy = y+rowH/2;
@@ -742,14 +936,26 @@ function buildContent(defs, tMs, regionW, regionH){
 // ---------- reflect: shapes stay pinned to the outer edges and stretch toward the line ----------
 // Places a copy of sourceId (drawn at 0,0 sized srcW x srcH) into the canvas,
 // optionally flipped and stretched so it fills the target box exactly with no gaps.
-function placeQuadrant(svg, sourceId, srcW, srcH, targetX, targetY, targetW, targetH, flipX, flipY){
+function placeQuadrant(svg, sourceId, srcW, srcH, targetX, targetY, targetW, targetH, flipX, flipY, clipIds){
   const scaleX = targetW / srcW;
   const scaleY = targetH / srcH;
   const sx = flipX ? -scaleX : scaleX;
   const sy = flipY ? -scaleY : scaleY;
   const tx = flipX ? targetX + targetW : targetX;
   const ty = flipY ? targetY + targetH : targetY;
-  svg.appendChild(el('use', {href:'#'+sourceId, transform:`translate(${tx} ${ty}) scale(${sx} ${sy})`}));
+  const use = el('use', {href:'#'+sourceId, transform:`translate(${tx} ${ty}) scale(${sx} ${sy})`});
+  const ids = clipIds ? (Array.isArray(clipIds) ? clipIds.filter(Boolean) : [clipIds]) : [];
+  if(ids.length === 0){
+    svg.appendChild(use);
+    return;
+  }
+  let inner = use;
+  ids.forEach(id=>{
+    const g = el('g', {'clip-path':`url(#${id})`});
+    g.appendChild(inner);
+    inner = g;
+  });
+  svg.appendChild(inner);
 }
 
 // ---------- noise overlay ----------
@@ -783,22 +989,71 @@ function buildSvg(tMs){
   // the "base" one) scales THIS SAME master into its own box, so both sides
   // genuinely stretch/contract instead of only the mirrored side scaling
   // while the base side just gets cropped.
-  const content = buildContent(defs, tMs, W, H);
+  const content = buildContent(defs, tMs, W, H, false, 'content');
   defs.appendChild(content);
+  const needsRev = (flipColorsV && reflectVOn) || (flipColorsH && reflectHOn);
+  if(needsRev){
+    const contentRev = buildContent(defs, tMs, W, H, true, 'content_rev');
+    defs.appendChild(contentRev);
+  }
+  // Each axis's own "flip colors" setting only applies to the mirroring THAT axis performs —
+  // a quadrant that's flipped on both axes reverses colors only if exactly one axis wants it.
+  const srcFor = (flipX, flipY) => (((flipX && flipColorsV) !== (flipY && flipColorsH))) ? 'content_rev' : 'content';
 
   const lineX = reflectVOn ? Math.min(W-5, Math.max(5, W*(reflectVPos/100))) : W;
   const lineY = reflectHOn ? Math.min(H-5, Math.max(5, H*(reflectHPos/100))) : H;
 
-  placeQuadrant(svg, 'content', W, H, 0, 0, lineX, lineY, false, false); // top-left / base
-
-  if(reflectVOn && !reflectHOn){
-    placeQuadrant(svg, 'content', W, H, lineX, 0, W-lineX, H, true, false);
+  // The reflected composite is built into its own reusable group instead of straight
+  // into <svg>, so "Repeat blocks" can tile multiple (possibly different-sized) copies
+  // of the whole thing — reflect, colors, everything — side by side or stacked.
+  const composed = el('g', {id:'composed'});
+  if(!reflectVOn && !reflectHOn){
+    placeQuadrant(composed, srcFor(false,false), W, H, 0, 0, W, H, false, false);
+  } else if(reflectVOn && !reflectHOn){
+    placeQuadrant(composed, srcFor(false,false), W, H, 0, 0, lineX, H, false, false);
+    placeQuadrant(composed, srcFor(true,false), W, H, lineX, 0, W-lineX, H, true, false);
   } else if(reflectHOn && !reflectVOn){
-    placeQuadrant(svg, 'content', W, H, 0, lineY, W, H-lineY, false, true);
+    placeQuadrant(composed, srcFor(false,false), W, H, 0, 0, W, lineY, false, false);
+    placeQuadrant(composed, srcFor(false,true), W, H, 0, lineY, W, H-lineY, false, true);
   } else if(reflectHOn && reflectVOn){
-    placeQuadrant(svg, 'content', W, H, lineX, 0, W-lineX, lineY, true, false);       // top-right
-    placeQuadrant(svg, 'content', W, H, 0, lineY, lineX, H-lineY, false, true);       // bottom-left
-    placeQuadrant(svg, 'content', W, H, lineX, lineY, W-lineX, H-lineY, true, true);  // bottom-right
+    placeQuadrant(composed, srcFor(false,false), W, H, 0, 0, lineX, lineY, false, false); // top-left
+    placeQuadrant(composed, srcFor(true,true), W, H, lineX, lineY, W-lineX, H-lineY, true, true); // bottom-right
+    placeQuadrant(composed, srcFor(true,false), W, H, lineX, 0, W-lineX, lineY, true, false); // top-right
+    placeQuadrant(composed, srcFor(false,true), W, H, 0, lineY, lineX, H-lineY, false, true); // bottom-left
+  }
+  defs.appendChild(composed);
+
+  const nH = Math.max(1, Math.min(8, blocksH||1));
+  const nV = Math.max(1, Math.min(8, blocksV||1));
+  if(nH <= 1 && nV <= 1){
+    placeQuadrant(svg, 'composed', W, H, 0, 0, W, H, false, false);
+  } else {
+    // Ease=0 -> every column/row the same size. Away from 0, size grows on one side and
+    // shrinks on the other (linear skew), while always summing back to the full canvas.
+    function weights(n, ease){
+      const w = [];
+      for(let i=0;i<n;i++){
+        const t = n>1 ? (i-(n-1)/2)/((n-1)/2) : 0; // -1..1
+        w.push(Math.max(0.15, 1 + (ease/100)*t));
+      }
+      return w;
+    }
+    const colW = weights(nH, blocksEaseH);
+    const rowW = weights(nV, blocksEaseV);
+    const colTotal = colW.reduce((a,b)=>a+b,0);
+    const rowTotal = rowW.reduce((a,b)=>a+b,0);
+    const colSizes = colW.map(w=> (w/colTotal)*W);
+    const rowSizes = rowW.map(w=> (w/rowTotal)*H);
+
+    let yCursor = 0;
+    for(let r=0;r<nV;r++){
+      let xCursor = 0;
+      for(let c=0;c<nH;c++){
+        placeQuadrant(svg, 'composed', W, H, xCursor, yCursor, colSizes[c], rowSizes[r], false, false);
+        xCursor += colSizes[c];
+      }
+      yCursor += rowSizes[r];
+    }
   }
 
   addNoiseOverlay(svg, defs);
@@ -807,9 +1062,16 @@ function buildSvg(tMs){
 
 function render(tMs){
   const host = document.getElementById('svgHost');
-  const svg = buildSvg(tMs);
-  host.innerHTML = '';
-  host.appendChild(svg);
+  try{
+    const svg = buildSvg(tMs);
+    host.innerHTML = '';
+    host.appendChild(svg);
+  } catch(err){
+    console.error('Render failed, keeping previous frame. Details:', err);
+    if(!host.querySelector('svg')){
+      host.innerHTML = '<div style="color:#e05252;font-family:monospace;font-size:11px;padding:16px;">Render error — check console for details.</div>';
+    }
+  }
 }
 function renderNow(){ render(animTime); }
 
@@ -835,13 +1097,16 @@ function updateAnimState(){
 }
 
 // ---------- wiring ----------
+function barsLabelFor(orient){
+  return orient === 'vertical' ? 'Columns' : 'Rows';
+}
 function wireOrientationButtons(){
   document.querySelectorAll('[data-orient]').forEach(btn=>{
     btn.onclick = ()=>{
       document.querySelectorAll('[data-orient]').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       orientation = btn.dataset.orient;
-      document.getElementById('barsLabel').textContent = orientation === 'vertical' ? 'Columns' : 'Rows';
+      document.getElementById('barsLabel').textContent = barsLabelFor(orientation);
       renderStagger();
       renderNow();
     };
@@ -852,11 +1117,17 @@ wireControl('cols','colsNum', v=>{ numBars=v; initOffsets(); renderStagger(); re
 wireControl('cycle','cycleNum', v=>{ baseLength=v; renderStagger(); renderNow(); });
 wireControl('repeatCount','repeatCountNum', v=>{ repeatCount=v; renderStagger(); renderNow(); });
 wireControl('decay','decayNum', v=>{ decayPct=v; renderStagger(); renderNow(); });
-wireControl('rotate','rotateNum', v=>{ rotateAngle=v; renderNow(); });
 wireControl('rampAmt','rampAmtNum', v=>{ rampAmt=v; renderNow(); });
+wireControl('panPct','panPctNum', v=>{ panPct=v; renderNow(); });
+wireControl('easeAmt','easeAmtNum', v=>{ easeAmt=v; renderNow(); });
+wireControl('blocksH','blocksHNum', v=>{ blocksH=v; renderNow(); });
+wireControl('blocksEaseH','blocksEaseHNum', v=>{ blocksEaseH=v; renderNow(); });
+wireControl('blocksV','blocksVNum', v=>{ blocksV=v; renderNow(); });
+wireControl('blocksEaseV','blocksEaseVNum', v=>{ blocksEaseV=v; renderNow(); });
 wireControl('rampFreq','rampFreqNum', v=>{ rampFreq=v; renderNow(); });
 wireControl('reflectHPos','reflectHPosNum', v=>{ reflectHPos=v; renderNow(); });
 wireControl('reflectVPos','reflectVPosNum', v=>{ reflectVPos=v; renderNow(); });
+wireControl('curveAmt','curveAmtNum', v=>{ curveAmt=v; renderNow(); });
 wireControl('noiseSize','noiseSizeNum', v=>{ noiseSize=v; renderNow(); });
 wireControl('noiseOctaves','noiseOctavesNum', v=>{ noiseOctaves=v; renderNow(); });
 wireControl('noiseOpacity','noiseOpacityNum', v=>{ noiseOpacity=v; renderNow(); });
@@ -924,6 +1195,16 @@ document.getElementById('reflectVOn').addEventListener('click', ()=>{
   document.getElementById('reflectVOn').classList.toggle('active');
   renderNow();
 });
+document.getElementById('flipColorsH').addEventListener('click', ()=>{
+  flipColorsH = !flipColorsH;
+  document.getElementById('flipColorsH').classList.toggle('active');
+  renderNow();
+});
+document.getElementById('flipColorsV').addEventListener('click', ()=>{
+  flipColorsV = !flipColorsV;
+  document.getElementById('flipColorsV').classList.toggle('active');
+  renderNow();
+});
 
 document.getElementById('noiseOn').addEventListener('click', ()=>{
   noiseOn = !noiseOn;
@@ -965,6 +1246,11 @@ document.getElementById('eqOn').addEventListener('click', ()=>{
   }
   updateAnimState();
 });
+document.getElementById('resetAnimTime').addEventListener('click', ()=>{
+  animTime = 0;
+  lastTs = null; // avoids a jump on the next frame if still playing
+  renderNow();
+});
 document.querySelectorAll('#eqDirGroup [data-eqdir]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('#eqDirGroup [data-eqdir]').forEach(b=>b.classList.remove('active'));
@@ -981,20 +1267,22 @@ document.getElementById('randomizeAll').addEventListener('click', ()=>{
 });
 
 // ---------- full reset ----------
-document.getElementById('resetAll').addEventListener('click', ()=>{
-  if(animRunning){ cancelAnimationFrame(animRAF); animRAF=null; animRunning=false; }
-  animTime = 0; lastTs = null;
-  applyDefaults();
-
+function syncAllControlsToState(){
   setControl('cols','colsNum', numBars);
   setControl('cycle','cycleNum', baseLength);
   setControl('repeatCount','repeatCountNum', repeatCount);
   setControl('decay','decayNum', decayPct);
-  setControl('rotate','rotateNum', rotateAngle);
   setControl('rampAmt','rampAmtNum', rampAmt);
+  setControl('panPct','panPctNum', panPct);
+  setControl('easeAmt','easeAmtNum', easeAmt);
+  setControl('blocksH','blocksHNum', blocksH);
+  setControl('blocksEaseH','blocksEaseHNum', blocksEaseH);
+  setControl('blocksV','blocksVNum', blocksV);
+  setControl('blocksEaseV','blocksEaseVNum', blocksEaseV);
   setControl('rampFreq','rampFreqNum', rampFreq);
   setControl('reflectHPos','reflectHPosNum', reflectHPos);
   setControl('reflectVPos','reflectVPosNum', reflectVPos);
+  setControl('curveAmt','curveAmtNum', curveAmt);
   setControl('noiseSize','noiseSizeNum', noiseSize);
   setControl('noiseOctaves','noiseOctavesNum', noiseOctaves);
   setControl('noiseOpacity','noiseOpacityNum', noiseOpacity);
@@ -1004,21 +1292,31 @@ document.getElementById('resetAll').addEventListener('click', ()=>{
   setControl('eqFreq','eqFreqNum', eqFreq);
   setControl('eqAmt','eqAmtNum', eqAmt);
 
-  document.getElementById('barsLabel').textContent = 'Columns';
-  document.querySelectorAll('[data-orient]').forEach(b=>b.classList.toggle('active', b.dataset.orient==='vertical'));
-  document.querySelectorAll('[data-anchor]').forEach(b=>b.classList.toggle('active', b.dataset.anchor==='center'));
-  document.getElementById('freqControlWrap').style.display = 'none';
-  document.querySelectorAll('#directionGroup [data-dir]').forEach(b=>b.classList.toggle('active', b.dataset.dir==='up'));
-  document.getElementById('reflectHOn').classList.remove('active');
-  document.getElementById('reflectVOn').classList.remove('active');
-  document.getElementById('noiseOn').classList.remove('active');
-  document.querySelectorAll('#noiseBlendGroup [data-blend]').forEach(b=>b.classList.toggle('active', b.dataset.blend==='overlay'));
+  document.getElementById('barsLabel').textContent = barsLabelFor(orientation);
+  document.querySelectorAll('[data-orient]').forEach(b=>b.classList.toggle('active', b.dataset.orient===orientation));
+  document.querySelectorAll('[data-anchor]').forEach(b=>b.classList.toggle('active', b.dataset.anchor===rampAnchor));
+  document.getElementById('freqControlWrap').style.display = rampAnchor==='wave' ? 'block' : 'none';
+  document.querySelectorAll('#directionGroup [data-dir]').forEach(b=>b.classList.toggle('active', b.dataset.dir===rampDir));
+  document.getElementById('reflectHOn').classList.toggle('active', reflectHOn);
+  document.getElementById('reflectVOn').classList.toggle('active', reflectVOn);
+  document.getElementById('flipColorsH').classList.toggle('active', flipColorsH);
+  document.getElementById('flipColorsV').classList.toggle('active', flipColorsV);
+  document.getElementById('noiseOn').classList.toggle('active', noiseOn);
+  document.querySelectorAll('#noiseBlendGroup [data-blend]').forEach(b=>b.classList.toggle('active', b.dataset.blend===noiseBlend));
   document.getElementById('colorScrollOn').classList.remove('active');
   document.getElementById('colorScrollOn').textContent = 'Play';
-  document.querySelectorAll('#colorScrollDirGroup [data-csdir]').forEach(b=>b.classList.toggle('active', b.dataset.csdir==='1'));
+  document.querySelectorAll('#colorScrollDirGroup [data-csdir]').forEach(b=>b.classList.toggle('active', +b.dataset.csdir===colorScrollDir));
   document.getElementById('eqOn').classList.remove('active');
   document.getElementById('eqOn').textContent = 'Play';
-  document.querySelectorAll('#eqDirGroup [data-eqdir]').forEach(b=>b.classList.toggle('active', b.dataset.eqdir==='1'));
+  document.querySelectorAll('#eqDirGroup [data-eqdir]').forEach(b=>b.classList.toggle('active', +b.dataset.eqdir===eqDir));
+}
+
+document.getElementById('resetAll').addEventListener('click', ()=>{
+  if(animRunning){ cancelAnimationFrame(animRAF); animRAF=null; animRunning=false; }
+  animTime = 0; lastTs = null;
+  colorScrollOn = false; eqOn = false;
+  applyDefaults();
+  syncAllControlsToState();
 
   renderPresets();
   renderStops();
@@ -1117,12 +1415,65 @@ document.getElementById('exportVideo').addEventListener('click', async ()=>{
   }
 });
 
+// ---------- full (saved) configurations ----------
+function renderFullPresetGrid(){
+  const grid = document.getElementById('fullPresetGrid');
+  grid.innerHTML = '';
+  FULL_PRESETS.forEach((p, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'preset-swatch';
+    btn.title = p.name;
+    btn.style.height = '44px';
+    btn.style.display = 'flex';
+    btn.style.alignItems = 'flex-end';
+    btn.style.justifyContent = 'center';
+    btn.style.paddingBottom = '4px';
+    btn.style.fontSize = '10px';
+    btn.style.color = '#fff';
+    btn.style.textShadow = '0 1px 2px rgba(0,0,0,0.6)';
+    btn.textContent = p.name;
+    const sorted = [...p.state.stops].sort((a,b)=>a.pos-b.pos);
+    const css = sorted.map(s=>`${s.color} ${s.pos}%`).join(', ');
+    btn.style.background = `linear-gradient(to bottom, ${css})`;
+    btn.addEventListener('click', ()=> loadFullPreset(i));
+    grid.appendChild(btn);
+  });
+}
+// ---------- make every numbered section collapsible ----------
+function makeSectionsCollapsible(){
+  document.querySelectorAll('.section').forEach(section=>{
+    const title = section.querySelector(':scope > .sec-title');
+    if(!title || title.querySelector('.chevron')) return; // skip section 3, already wired
+    const chevron = document.createElement('span');
+    chevron.className = 'chevron';
+    chevron.textContent = '▾';
+    title.appendChild(chevron);
+    title.classList.add('collapsible');
+
+    const body = document.createElement('div');
+    body.className = 'section-body';
+    const toMove = [];
+    let node = title.nextSibling;
+    while(node){ const next = node.nextSibling; toMove.push(node); node = next; }
+    toMove.forEach(n=> body.appendChild(n));
+    section.appendChild(body);
+
+    title.addEventListener('click', ()=>{
+      const isOpen = body.style.display !== 'none';
+      body.style.display = isOpen ? 'none' : '';
+      chevron.classList.toggle('closed', isOpen);
+    });
+  });
+}
+
 // init
 renderPresets();
+renderFullPresetGrid();
 renderStops();
 renderGradientBar();
 renderStagger();
 renderNow();
+makeSectionsCollapsible();
 </script>
 </body>
 </html>
